@@ -1,16 +1,20 @@
 pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('docker-hub')
+        #key-value 값으로 저장
     }
     agent any
     triggers {
         pollSCM('* * * * *')
+        #1분마다 깃에서 변경을 감시하는게 pollSCM방식
     }
     stages {
         stage("Compile") {
             steps {
                 sh "./gradlew compileJava"
-            }
+                # 깃에 올라가있는 것 기준을 자바컴파일    
+                #git ignore도 생각을 해야함       
+ }
         }
         stage("Build") {
            steps {
@@ -54,6 +58,7 @@ pipeline {
                sh "sed -i 's/{{VERSION}}/${BUILD_NUMBER}/g' ./kubernetes/apache2.yml"
                sh "sed -i 's/{{VERSION}}/${BUILD_NUMBER}/g' ./kubernetes/smboard.yml"
                sh "sed -i 's/{{VERSION}}/${BUILD_NUMBER}/g' ./kubernetes/mariadb.yml"
+               # sed는  vi같은거 version 을 build_number을 바꾼다... 
                sh "kubectl delete -A ValidatingWebhookConfiguration ingress-nginx-admission"
                sh "kubectl apply -f ./kubernetes/mariadb.yml"
                sh "kubectl apply -f ./kubernetes/smboard.yml"
